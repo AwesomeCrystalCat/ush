@@ -20,3 +20,6 @@ What are the environmental variables and how shell interact with them?
 What is POSIX?
 What does C standard library for POSIX system consist of?
 Exotic shells.
+
+Tasks for builtsins:
+//

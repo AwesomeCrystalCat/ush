@@ -1,0 +1,16 @@
+*.DS_Store
+*.ini
+*~
+~$*
+
+*.dms
+*.sw*
+
+*.i
+*.s
+*.o
+*.dSYM
+
+*.a
+*.out
+*.exe

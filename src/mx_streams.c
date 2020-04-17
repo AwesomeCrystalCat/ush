@@ -21,5 +21,5 @@ int mx_streams(t_st *st, char **tokens) {
     }
 
 
-    return 1;
+    return 0;
 }

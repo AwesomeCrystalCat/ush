@@ -85,12 +85,12 @@ void mx_malloc_err();
 char **mx_split_line(char *line, int bufsize, int j, int k);
 char **mx_split_backup(char **tokens, int bufsize);
 void mx_loop(t_st *st);
-int mx_simple_commands(t_st *st, char **commands, char *line, int status);
+int mx_simple_commands(t_st *st, char **commands, char *line, int passed_cmd);
 int mx_command_pars(t_st *st, char *c, int j, int k);
 int mx_streams(t_st *st, char **tokens);
 int mx_check_slash(char *line, int end);
 char *mx_check_env(char **arr, char *macros);
 char *mx_get_env(char *c, int k);
-int mx_complex_cmd(t_st *st, char **commands, int i);
+int mx_complex_cmd(t_st *st, char **commands, int i, int passed_cmd);
 
 #endif

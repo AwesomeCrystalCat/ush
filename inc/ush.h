@@ -46,11 +46,66 @@
 #include <pwd.h>
 #include <grp.h>
 #include <time.h>
-#include <sys/ioctl.h>
+#include <stropts.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <termcap.h>
+#include <curses.h>
+#include <term.h>
+#include <termios.h>
+#include <signal.h>
+
+#define CTRL_KEY(k) ((k) & 0x1f)
+#define ABUF_INIT {NULL, 0}
+#define MAXBUFSIZE (10000U)
+#define MX_BACKSPACE 127
+#define MX_DELBUF "\b \b"
+#define MX_ARROW_LEFT 1000
+#define MX_ARROW_RIGHT 1001
+#define MX_ARROW_UP 1002
+#define MX_ARROW_DOWN 1003
+#define MX_PAGE_UP 1004
+#define MX_PAGE_DOWN 1005
+#define MX_HOME_KEY 1006
+#define MX_END_KEY 1007
+#define MX_DEL_KEY 1008
+
+typedef struct history {
+  int id;
+  int len;
+  char *line;
+  char *time;
+}              t_hist;
+
+typedef struct s_row {
+  int len;
+  char *tail;
+  char *line;
+}               t_row;
+
+typedef struct term_config {
+  struct termios origin;
+  struct termios raw;
+  struct s_row *out;
+  int entry;
+  int total;
+  int *quo;
+  int q_id;
+  int pos;
+  int row;
+  int col;
+  int x;
+  int y;
+  int reset;
+  int mo_x;
+  int mo_y;
+  int count;
+  char **command;
+  char *line;
+  char *buf;
+}              config;
 
 int main(int argc, char **argv, char **envp);
+// int main(void);
 
 #endif

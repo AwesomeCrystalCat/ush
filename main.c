@@ -7,48 +7,6 @@
 #include <curses.h>
 #include <ctype.h>
 
-int mx_strcmp(const char *s1, const char *s2) {
-    int i = 0;
-
-    while (s1[i] == s2[i]) {
-        if (s1[i] == '\0' && s2[i] == '\0')
-            return 0;
-        i++;
-        }
-    return s1[i] - s2[i];
-}
-
-static void swap_elems(char *arr1, char *arr2) {
-    char temp = *arr1;
-
-    *arr1 = *arr2;
-    *arr2 = temp;
-}
-
-void mx_quick_elem_sort(char **ptr, int left, int right) {
-    int i = 0;
-    int j = 0;
-    int pivot = 0;
-
-    if (left < right) {
-        pivot = left;
-        i = left;
-        j = right;
-        while (i < j) {
-          printf("///%s - %s///", ptr[i], ptr[pivot]);
-            while (mx_strcmp(ptr[i], ptr[pivot]) < 0
-                   && i < right)
-                i++;
-            while (mx_strcmp(ptr[j], ptr[pivot]) > 0)
-                j--;
-            if (i < j)
-                swap_elems(ptr[i], ptr[j]);
-        }
-        mx_quick_elem_sort(ptr, left, j - 1);
-        mx_quick_elem_sort(ptr, j + 1, right);
-    }
-}
-
 char *mx_strnew(const int size) {
     char *s = NULL;
 
@@ -159,6 +117,20 @@ void raw_mode_on() {
   raw.c_cc[VMIN] = 0;
   raw.c_cc[VTIME] = 1;
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+void get_cursor(int *y, int *x) {
+ char buf[30];
+ int i;
+ char ch;
+
+ write(1, "\033[6n", 4);
+ for (i = 0, ch = 0; ch != 'R'; i++ )
+ {
+    read(0, &ch, 1);
+    buf[i] = ch;
+ }
+ sscanf(&buf[2], "%d;%d", x, y);
 }
 
 void refresh_screen(config* term, int offset) {
@@ -325,36 +297,23 @@ void editor_processing(config* term, int c) {
     term->mo_y++;
 }
 
-void get_cursor(int *y, int *x) {
- char buf[30];
- int i;
- char ch;
-
- write(1, "\033[6n", 4);
- for (i = 0, ch = 0; ch != 'R'; i++ )
- {
-    read(0, &ch, 1);
-    buf[i] = ch;
- }
- sscanf(&buf[2], "%d;%d", x, y);
-}
-
-void qoutes_handling(char c, config *term) {
+void qoutes_handling(config *term) {
+  for (int i = 0; i < term->out->len; i++)
   if (term->quo[0] != 96 && term->quo[1] != 96) {
-    if (!term->quo[0] && (c == 34 || c == 39))
-      term->quo[term->q_id++] = c;
-    else if (c == 96)
-      term->quo[term->q_id++] = c;
-    else if (term->quo[0] == c) {
+    if (!term->quo[0] && (term->out->line[i] == 34 || term->out->line[i] == 39))
+      term->quo[term->q_id++] = term->out->line[i];
+    else if (term->out->line[i] == 96)
+      term->quo[term->q_id++] = term->out->line[i];
+    else if (term->quo[0] == term->out->line[i]) {
       term->quo[0] = 0;
       term->q_id--;
     }
   }
-  else if (term->quo[0] == 96 && term->quo[0] == c) {
+  else if (term->quo[0] == 96 && term->quo[0] == term->out->line[i]) {
     term->quo[0] = 0;
     term->q_id--;
   }
-  else if (term->quo[1] == c) {
+  else if (term->quo[1] == term->out->line[i]) {
     term->quo[1] = 0;
     term->q_id--;
   }
@@ -366,6 +325,7 @@ void processKey(config *term, t_hist **hist) {
   switch (c) {
     case '\r':
       if (term->out->len > 0) {
+        qoutes_handling(term);
         if (!hist[term->entry]) {
           hist[term->entry] = (t_hist *)malloc(sizeof(t_hist) * 1);
           hist[term->entry]->id = term->entry;
@@ -390,7 +350,7 @@ void processKey(config *term, t_hist **hist) {
           term->mo_y = 1;
           term->mo_x++;
           write(1, "\r\n", 2);
-          write(1, "blockqoute> ", 11);
+          write(1, "blockqoute> ", 12);
         }
       }
       else if (!term->quo[0]) {
@@ -419,9 +379,46 @@ void processKey(config *term, t_hist **hist) {
         term->pos = 0;
         term->mo_y = 1;
         write(1, "\r\n", 2);
-        write(1, "blockqoute> ", 11);
+        write(1, "blockqoute> ", 12);
       }
       break;
+    case '\t':
+      get_cursor(&term->y, &term->x);
+      if (term->out->len) {
+        char **buf = (char **)malloc(sizeof(char *) * 100);
+        int j = 0;
+        for (int i = 0; i < term->count + 9; i++) {
+          if (false == strncmp(term->out->line, term->command[i], term->out->len))
+            buf[j++] = mx_strdup(term->command[i]);
+        }
+        if (j == 1) {
+          write(1, "\r", 1);
+          refresh_line(term, 5);
+          write(1, buf[0], strlen(buf[0]));
+          term->mo_y = strlen(buf[0]) + 1;
+          free(term->out->line);
+          term->out->line = mx_strdup(buf[0]);
+          term->out->len = strlen(buf[0]);
+        }
+        else if (j > 1) {
+          term->mo_y = term->out->len + 1;
+          if (term->x >= term->row) {
+            term->mo_x = term->x - 1;
+          }
+          write(1, "\r\n", 2);
+          for (int i = 0; i < j; i++) {
+            write(1, buf[i], strlen(buf[i]));
+            write(1, "\t", 1);
+           }
+          }
+        }
+    break;
+    case CTRL_KEY('l'):
+      term->mo_x = 1;
+      write(1, "\r", 1);
+      write(STDOUT_FILENO, "\x1b[2J", 4);
+      write(1, "u$h> ", 5);
+    break;
     case CTRL_KEY('d'):
         cooked_mode_on();
         tcsetattr(0, TCSAFLUSH, &term->origin);
@@ -479,7 +476,6 @@ void processKey(config *term, t_hist **hist) {
       arrows_motion(c, term, hist);
       break;
     default:
-      qoutes_handling(c, term);
       editor_processing(term, c);
       break;
   }
@@ -493,9 +489,13 @@ void loop(config* term, t_hist **hist) {
   refresh_line(term, 5);
   while (1) {
     processKey(term, hist);
-    refresh_screen(term, 5);
+    if (!term->quo[0])
+      refresh_screen(term, 5);
+    else
+      refresh_screen(term, 12);
     if (term->reset) {
       term->reset = 0;
+      write(STDOUT_FILENO, "\x1b[0J", 4); //this line removes command assumptions
       cooked_mode_on();
       tcsetattr(0, TCSAFLUSH, &term->origin);
       write(1, "\r\n", 2);
@@ -532,6 +532,7 @@ void get_term_params(config *term) {
   tgetent (buf, termtype);
 
   term->col = tgetnum("co");
+  term->row = tgetnum("li");
 }
 
 config *config_init() {
@@ -539,6 +540,7 @@ config *config_init() {
   term->out = (t_row *)malloc(sizeof(t_row));
   term->out->line = (char *)malloc(sizeof(char) * 100);
   term->out->tail = NULL;
+  term->count = 0;
   term->entry = 0;
   term->pos = 0;
   term->out->len = 0;
@@ -560,9 +562,9 @@ config *config_init() {
 static bool comparator(const char *name) {
     bool is_dir = 0;
 
-    if (mx_strcmp(name, ".") == 0)
+    if (strcmp(name, ".") == 0)
         is_dir = 1;
-    if (mx_strcmp(name, "..") == 0)
+    if (strcmp(name, "..") == 0)
         is_dir = 1;
     return is_dir;
 }
@@ -599,7 +601,6 @@ void get_commands(config *term) {
   closedir(mydir);
   for (int j = 0; j < 9; j++)
     term->command[i++] = mx_strdup(builtins[j]);
-  mx_quick_elem_sort(term->command, 0, term->count - 1);
 }
 
 int main(int argc, char **argv, char **envp) {
@@ -607,14 +608,11 @@ int main(int argc, char **argv, char **envp) {
   (void)argv;
   (void)argc;
   config *term = config_init();
-  // t_hist **hist = (t_hist **)malloc(sizeof(t_hist) * 100);
+  t_hist **hist = (t_hist **)malloc(sizeof(t_hist) * 100);
   get_term_params(term);
   get_commands(term);
-  for (int i = 0; i < term->count + 9; i++) {
-    printf("%s, ", term->command[i]);
+  if (isatty(0)) {
+    loop(term, hist);
   }
-  // if (isatty(0)) {
-  //   loop(term, hist);
-  // }
   return 0;
 }

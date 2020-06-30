@@ -135,7 +135,7 @@ void get_cursor(int *y, int *x) {
 
 void refresh_screen(config* term, int offset) {
   write(1, "\x1b[", 2);
-  write(1, mx_itoa(term->mo_x), strlen(mx_itoa(term->mo_x)));
+  write(1, mx_itoa(term->mo_x + term->x_offset), strlen(mx_itoa(term->mo_x + term->x_offset)));
   write(1, ";", 1);
   write(1, mx_itoa(term->mo_y + offset), strlen(mx_itoa(term->mo_y + offset)));
   write(1, "H", 1);
@@ -157,7 +157,7 @@ void refresh_line(config* term, int offset) {
   term->mo_y = 1;
   write(1, "u$h> ", strlen("u$h> "));
   write(1, "\x1b[", 2);
-  write(1, mx_itoa(term->mo_x), strlen(mx_itoa(term->mo_x)));
+  write(1, mx_itoa(term->mo_x  + term->x_offset), strlen(mx_itoa(term->mo_x  + term->x_offset)));
   write(1, ";", 1);
   write(1, mx_itoa(term->mo_y + offset), strlen(mx_itoa(term->mo_y + offset)));
   write(1, "H", 1);
@@ -354,7 +354,7 @@ void processKey(config *term, t_hist **hist) {
         }
       }
       else if (!term->quo[0]) {
-        write(1, "\r\n", 2);
+        write(1, "\n\r", 2);
         fflush(stdout);
         free(term->out->line);
         free(term->out->tail);
@@ -384,12 +384,16 @@ void processKey(config *term, t_hist **hist) {
       break;
     case '\t':
       get_cursor(&term->y, &term->x);
+      write(1, "\x1b[J", 3);
       if (term->out->len) {
         char **buf = (char **)malloc(sizeof(char *) * 100);
+        int max_len = 0;
         int j = 0;
         for (int i = 0; i < term->count + 9; i++) {
           if (false == strncmp(term->out->line, term->command[i], term->out->len))
             buf[j++] = mx_strdup(term->command[i]);
+            if ((int)strlen(term->command[i]) > max_len)
+              max_len = strlen(term->command[i]);
         }
         if (j == 1) {
           write(1, "\r", 1);
@@ -402,23 +406,35 @@ void processKey(config *term, t_hist **hist) {
         }
         else if (j > 1) {
           term->mo_y = term->out->len + 1;
-          if (term->x >= term->row) {
-            term->mo_x = term->x - 1;
-          }
-          write(1, "\r\n", 2);
+          write(1, "\n\r", 2);
           for (int i = 0; i < j; i++) {
             write(1, buf[i], strlen(buf[i]));
+            // if ((int)strlen(buf[i]) < max_len) {
+            // for (int k = 0; k < max_len - (int)strlen(buf[i]); k++)
+            //   write(1, " ", 1); 
+            // }
             write(1, "\t", 1);
            }
+           if (term->mo_x >= term->row)
+            term->mo_x = term->x - 1;
+            write(1, "\x1b[", 2);
+            write(1, mx_itoa(term->mo_x), strlen(mx_itoa(term->mo_x)));
+            write(1, ";", 1);
+            write(1, mx_itoa(term->mo_y), strlen(mx_itoa(term->mo_y)));
+            write(1, "H", 1);
           }
         }
     break;
     case CTRL_KEY('l'):
-    // que pasa???
-      // term->mo_x = 1;
-      // write(1, "\r", 1);
-      // write(STDOUT_FILENO, "\x1b[2J", 4);
-      // write(1, "u$h> ", 5);
+      term->mo_x = 1;
+      write(1, "\r", 1);
+      write(STDOUT_FILENO, "\x1b[2J", 4);
+      write(1, "\x1b[", 2);
+      write(1, mx_itoa(term->mo_x), strlen(mx_itoa(term->mo_x)));
+      write(1, ";", 1);
+      write(1, mx_itoa(term->mo_y), strlen(mx_itoa(term->mo_y)));
+      write(1, "H", 1);
+      write(1, "u$h> ", strlen("u$h> "));
     break;
     case CTRL_KEY('d'):
         cooked_mode_on();
@@ -437,8 +453,8 @@ void processKey(config *term, t_hist **hist) {
         if (term->mo_y > 1) {
           if (term->mo_y - 1 < term->out->len) {
             term->pos = term->mo_y - 1;
-            term->out->line = realloc(term->out->line, term->pos);
             term->out->tail = mx_strndup(term->out->line + term->pos, term->out->len - term->pos);
+            term->out->line = realloc(term->out->line, term->pos);
             --term->pos;
             --term->mo_y;
             --term->out->len;
@@ -489,17 +505,21 @@ void loop(config* term, t_hist **hist) {
   term->mo_y = term->y;
   refresh_line(term, 5);
   while (1) {
+    write(1, "\x1b[?25h", 6);
     processKey(term, hist);
+    write(1, "\x1b[?25l", 6);
+    get_cursor(&term->y, &term->x);
+    term->mo_x = term->x;
     if (!term->quo[0])
       refresh_screen(term, 5);
     else
       refresh_screen(term, 12);
     if (term->reset) {
       term->reset = 0;
+      write(1, "\n\r", 2);
       write(STDOUT_FILENO, "\x1b[0J", 4); //this line removes command assumptions
       cooked_mode_on();
       tcsetattr(0, TCSAFLUSH, &term->origin);
-      write(1, "\r\n", 2);
       write(1, hist[term->entry]->line, hist[term->entry]->len);
       term->entry++;
       term->total = term->entry;
@@ -517,8 +537,8 @@ void loop(config* term, t_hist **hist) {
       term->out->line = (char *)malloc(sizeof(char) * 100);
       term->out->len = 0;
       term->pos = 0;
-      write(1, "\r\n", 2);
       raw_mode_on();
+      write(1, "\r\n", 2);
       term->mo_x = term->mo_x + 2;
       refresh_line(term, 5);
     }

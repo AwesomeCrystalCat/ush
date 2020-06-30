@@ -92,6 +92,8 @@ typedef struct term_config {
   int *quo;
   int q_id;
   int pos;
+  int x_offset;
+  int output_col;
   int row;
   int col;
   int x;

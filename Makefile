@@ -7,6 +7,31 @@ INC = ./inc/ush.h
 HEAD = ush.h
 
 SRCOUT = main.c \
+		 mx_get_commands.c \
+		 mx_config_init.c \
+		 mx_get_term_params.c \
+		 mx_loop.c \
+		 mx_raw_mode_on.c \
+		 mx_get_cursor.c \
+		 mx_refresh_line.c \
+		 mx_refresh_screen.c \
+		 mx_cooked_mode_on.c \
+		 mx_process_key.c \
+		 mx_qoutes_handling.c \
+		 mx_editor_processing.c \
+		 mx_read_key.c \
+		 mx_arrows_motion.c \
+		 mx_die.c \
+		 mx_itoa.c \
+		 mx_strdup.c \
+		 mx_strcpy.c \
+		 mx_strndup.c \
+		 mx_strncpy.c \
+		 mx_strnew.c \
+		 mx_return_action.c \
+		 mx_tab_action.c \
+		 mx_backspace_action.c \
+		 mx_clear_screen.c \
 
 SRCS = $(addprefix ./src/, $(SRCOUT))
 

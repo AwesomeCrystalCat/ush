@@ -1,39 +1,6 @@
 #ifndef USH_H
 #define USH_H
 
-#define MX_IFMT 0170000
-#define MX_ISUID 0004000
-#define MX_ISGID 0002000
-#define MX_ISVTX 0001000
-#define MX_IRUSR 0000400
-#define MX_IWUSR 0000200
-#define MX_IXUSR 0000100
-#define MX_IRGRP 0000040
-#define MX_IWGRP 0000020
-#define MX_IXGRP 0000010
-#define MX_IROTH 0000004
-#define MX_IWOTH 0000002
-#define MX_IXOTH 0000001
-
-#define MX_IFDIR 0040000
-#define MX_IFCHR 0020000
-#define MX_IFBLK 0060000
-#define MX_IFREG 0100000
-#define MX_IFIFO 0010000
-#define MX_IFLNK 0120000
-#define MX_IFSOCK 0140000
-
-# define MX_FIFO_COL "\x1b[33m"
-# define MX_CHR_COL "\x1b[34;43m"
-# define MX_DIR_COL "\x1b[1m\x1b[36m"
-# define MX_BLK_COL "\x1b[34;46m"
-# define MX_REG_COL "\x1b[37;2m"
-# define MX_LNK_COL "\x1b[35m"
-# define MX_SOCK_COL "\x1b[32m"
-# define MX_WHT_COL "\x1b[31m"
-# define MX_EXE_COL "\x1b[31m"
-# define MX_NONE_COL "\x1b[0m"
-
 #include "libmx/inc/libmx.h"
 #include <dirent.h>
 #include <string.h>
@@ -46,7 +13,6 @@
 #include <pwd.h>
 #include <grp.h>
 #include <time.h>
-#include <stropts.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <termcap.h>
@@ -70,44 +36,67 @@
 #define MX_END_KEY 1007
 #define MX_DEL_KEY 1008
 
-typedef struct history {
-  int id;
-  int len;
-  char *line;
-  char *time;
+typedef struct s_history {
+    int id;
+    int len;
+    char *line;
 }              t_hist;
 
 typedef struct s_row {
-  int len;
-  char *tail;
-  char *line;
-}               t_row;
+    int len;
+    char *tail;
+    char *line;
+}              t_row;
 
-typedef struct term_config {
-  struct termios origin;
-  struct termios raw;
-  struct s_row *out;
-  int entry;
-  int total;
-  int *quo;
-  int q_id;
-  int pos;
-  int x_offset;
-  int output_col;
-  int row;
-  int col;
-  int x;
-  int y;
-  int reset;
-  int mo_x;
-  int mo_y;
-  int count;
-  char **command;
-  char *line;
-  char *buf;
-}              config;
+typedef struct s_config {
+    struct termios origin;
+    struct termios raw;
+    struct s_row *out;
+    int entry;
+    int total;
+    int *quo;
+    int q_id;
+    int pos;
+    int x_offset;
+    int row;
+    int col;
+    int x;
+    int y;
+    int reset;
+    int mo_x;
+    int mo_y;
+    int count;
+    char **command;
+    char **buf;
+}               t_config;
 
 int main(int argc, char **argv, char **envp);
-// int main(void);
+void mx_get_commands(t_config *term);
+t_config *mx_config_init(void);
+void mx_get_term_params(t_config *term);
+void mx_loop(t_config* term, t_hist **hist);
+void mx_raw_mode_on(void);
+void mx_get_cursor(int *y, int *x);
+void mx_refresh_line(t_config* term, int offset);
+void mx_refresh_screen(t_config* term, int offset);
+void mx_cooked_mode_on(void);
+void mx_process_key(t_config *term, t_hist **hist);
+void mx_qoutes_handling(t_config *term);
+void mx_editor_processing(t_config* term, int c);
+int mx_read_key(void);
+void mx_arrows_motion(int k, t_config* term, t_hist **hist);
+void mx_die(const char *str);
+void mx_return_action(t_config *term, t_hist **hist);
+void mx_tab_action(t_config *term);
+void mx_backspace_action(t_config *term);
+void mx_clear_screen(t_config* term);
+
+//delete these function while merging
+char *mx_itoa(int number);
+char *mx_strdup(const char *str);
+char *mx_strcpy(char *dst, const char *src);
+char *mx_strndup(const char *s1, size_t n);
+char *mx_strncpy(char *dst, const char *src, int len);
+char *mx_strnew(const int size);
 
 #endif

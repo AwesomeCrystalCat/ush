@@ -6,6 +6,8 @@ INC = ./inc/ush.h
 
 HEAD = ush.h
 
+SRC = src
+
 SRCOUT = main.c \
 		 mx_get_commands.c \
 		 mx_config_init.c \
@@ -32,6 +34,7 @@ SRCOUT = main.c \
 		 mx_tab_action.c \
 		 mx_backspace_action.c \
 		 mx_clear_screen.c \
+		 mx_free_assumptions.c \
 
 SRCS = $(addprefix ./src/, $(SRCOUT))
 

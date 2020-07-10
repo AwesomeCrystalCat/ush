@@ -2,6 +2,7 @@
 
 static void clean_up(t_config* term) {
     fflush(stdout);
+    mx_free_assumptions(term);
     free(term->out->line);
     free(term->out->tail);
     free(term->quo);
@@ -18,8 +19,7 @@ static void clean_up(t_config* term) {
 
 static void reset(t_config* term, t_hist **hist) {
     term->reset = 0;
-    write(1, "\n\r", 2);
-    write(1, "\x1b[0J", 4);
+    write(1, "\n\r\x1b[0J", 6);
     mx_cooked_mode_on();
     tcsetattr(0, TCSAFLUSH, &term->origin);
     write(1, hist[term->entry]->line, hist[term->entry]->len);

@@ -1,6 +1,8 @@
 #include "ush.h"
 
 static void qoutes_init(t_config *term) {
+    term->num = 0;
+    term->press = 0;
     term->buf = NULL;
     term->buf = (char **)malloc(sizeof(char *) * 300);
     term->quo = NULL; 

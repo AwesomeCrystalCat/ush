@@ -10,6 +10,7 @@ static void del_action(t_config *term) {
 
 void mx_backspace_action(t_config *term) {
     if (term->mo_y > 1) {
+        mx_free_assumptions(term);
         if (term->mo_y - 1 < term->out->len) {
             term->pos = term->mo_y - 1;
             term->out->tail = mx_strndup(term->out->line + term->pos,

@@ -22,6 +22,7 @@ static void position_conditions(t_config* term) {
 }
 
 void mx_editor_processing(t_config* term, int c) {
+    mx_free_assumptions(term);
     if (term->out->line == NULL) {
         term->out->line = (char *)malloc(sizeof(char) * 100);
     }

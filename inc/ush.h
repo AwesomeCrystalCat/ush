@@ -66,6 +66,9 @@ typedef struct s_config {
     int mo_x;
     int mo_y;
     int count;
+    int press;
+    int num;
+    int max_len;
     char **command;
     char **buf;
 }               t_config;
@@ -90,6 +93,7 @@ void mx_return_action(t_config *term, t_hist **hist);
 void mx_tab_action(t_config *term);
 void mx_backspace_action(t_config *term);
 void mx_clear_screen(t_config* term);
+void mx_free_assumptions(t_config *term);
 
 //delete these function while merging
 char *mx_itoa(int number);

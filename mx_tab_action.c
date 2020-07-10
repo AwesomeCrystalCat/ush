@@ -46,26 +46,27 @@ static void multi_assumption(t_config *term) {
     if (term->num > 1) {
         if (term->press > 0)
             single_assumption(term, term->buf[term->press - 1]);
-        print_assumptions(term, total_len);
     }
+    print_assumptions(term, total_len);
     term->press++;
     if (term->press > term->num)
         term->press = 1;
 }
 
-static void grab_cursor(t_config *term) {
-    write(1, "\x1b[", 2);
-    write(1, mx_itoa(term->mo_x), strlen(mx_itoa(term->mo_x)));
-    write(1, ";", 1);
-    write(1, mx_itoa(term->mo_y), strlen(mx_itoa(term->mo_y)));
-    write(1, "H", 1);
+static void print_tail(t_config *term) {
+    if (term->out->tail) {
+        write(1, term->out->tail, strlen(term->out->tail));
+        term->mo_y = term->out->len + 1;
+        write(1, "\x1b[J", 3);
+    }
 }
 
 void mx_tab_action(t_config *term) {
-    term->x_offset = 1;
-    mx_get_cursor(&term->y, &term->x);
-    write(1, "\x1b[J", 3);
+    print_tail(term);
     if (term->out->len) {
+        term->x_offset = 1;
+        write(1, "\x1b[J", 3);
+        mx_get_cursor(&term->y, &term->x);
         if (term->press == 0) {
             for (int i = 0; i < term->count; i++) {
                 if (!strncmp(term->out->line,
@@ -77,8 +78,6 @@ void mx_tab_action(t_config *term) {
         }
         if (term->num > 0)
             multi_assumption(term);
-        if (term->num > 1 && term->mo_x >= term->row)
-            term->mo_x = term->x - term->x_offset;
-        grab_cursor(term);
-    }       
+        mx_set_cursor(term);
+    }
 }

@@ -94,6 +94,7 @@ void mx_tab_action(t_config *term);
 void mx_backspace_action(t_config *term);
 void mx_clear_screen(t_config* term);
 void mx_free_assumptions(t_config *term);
+void mx_set_cursor(t_config *term);
 
 //delete these function while merging
 char *mx_itoa(int number);

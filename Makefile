@@ -35,6 +35,7 @@ SRCOUT = main.c \
 		 mx_backspace_action.c \
 		 mx_clear_screen.c \
 		 mx_free_assumptions.c \
+		 mx_set_cursor.c \
 
 SRCS = $(addprefix ./src/, $(SRCOUT))
 

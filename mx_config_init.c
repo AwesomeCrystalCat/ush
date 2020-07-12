@@ -18,6 +18,7 @@ t_config *mx_config_init(void) {
     term->out = (t_row *)malloc(sizeof(t_row));
     term->out->line = NULL;
     term->out->tail = NULL;
+    term->str = NULL;
     term->count = 0;
     term->entry = 0;
     term->pos = 0;

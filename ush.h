@@ -69,13 +69,16 @@ typedef struct s_config {
     int press;
     int num;
     int max_len;
+    int str_len;
     char **command;
     char **buf;
+    char *str;
 }               t_config;
 
 int main(int argc, char **argv, char **envp);
 void mx_get_commands(t_config *term);
 t_config *mx_config_init(void);
+t_hist **mx_hist_init(void);
 void mx_get_term_params(t_config *term);
 void mx_loop(t_config* term, t_hist **hist);
 void mx_raw_mode_on(void);

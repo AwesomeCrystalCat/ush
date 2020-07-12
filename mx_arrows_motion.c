@@ -61,8 +61,7 @@ static void create_history(t_config* term, t_hist **hist) {
         if (strlen(tmp)) {
             char *token = strtok(tmp, "\t");
 
-            for (int i = 0; token != NULL; i++) {
-                term->entry++;
+            for (int i = 0; token != NULL; i++, term->entry++) {
                 hist[i]->line = mx_strdup(token);
                 hist[i]->len = strlen(hist[i]->line);
                 token = strtok(NULL, "\t");
@@ -85,13 +84,13 @@ void mx_arrows_motion(int k, t_config* term, t_hist **hist) {
             if (term->mo_y < term->out->len + 1)
                 term->mo_y++;
             break;
-        case MX_ARROW_UP:
-            if (hist[0]->line != NULL)
-                up_motion(term, hist);
-        break;
-        case MX_ARROW_DOWN:
-            if (hist[0]->line != NULL)
-                down_motion(term, hist);
-        break;
+        default:
+            if (hist[0]->line != NULL) {
+                if (k == MX_ARROW_UP)
+                    up_motion(term, hist);
+                else if (k == MX_ARROW_DOWN)
+                    down_motion(term, hist);
+            }
+            break;
     }
 }

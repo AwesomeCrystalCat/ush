@@ -92,7 +92,7 @@ void mx_editor_processing(t_config* term, int c);
 int mx_read_key(void);
 void mx_arrows_motion(int k, t_config* term, t_hist **hist);
 void mx_die(const char *str);
-void mx_return_action(t_config *term, t_hist **hist);
+void mx_return_action(t_config *term);
 void mx_tab_action(t_config *term);
 void mx_backspace_action(t_config *term);
 void mx_clear_screen(t_config* term);

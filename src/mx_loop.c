@@ -17,6 +17,8 @@ static void clean_up(t_config* term) {
     term->q_id = 0;
     term->out->len = 0;
     term->pos = 0;
+    term->total = 0;
+    term->entry = 0;
 }
 
 static void write_hist(int len, char *str) {
@@ -30,7 +32,6 @@ static void write_hist(int len, char *str) {
 }
 
 static void reset(t_config* term, t_hist **hist) {
-    (void)hist;
     write_hist(term->str_len, term->str);
     term->reset = 0;
     write(1, "\n\r\x1b[0J", 6);
@@ -44,8 +45,6 @@ static void reset(t_config* term, t_hist **hist) {
             hist[i]->len = 0;
         }
     }
-    term->total = 0;
-    term->entry = 0;
     clean_up(term);
     mx_raw_mode_on();
     write(1, "\r\n", 2);

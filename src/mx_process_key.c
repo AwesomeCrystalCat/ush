@@ -39,7 +39,7 @@ void mx_process_key(t_config *term, t_hist **hist) {
     int c = mx_read_key();
 
     if (c == '\r')
-        mx_return_action(term, hist);
+        mx_return_action(term);
     else if (c == '\t')
         mx_tab_action(term);
     else if (c == CTRL_KEY('l'))

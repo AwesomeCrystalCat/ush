@@ -1,6 +1,7 @@
 #include "ush.h"
 
 static void qoutes_init(t_config *term) {
+    term->total = 0;
     term->num = 0;
     term->press = 0;
     term->buf = NULL;
@@ -24,7 +25,6 @@ t_config *mx_config_init(void) {
     term->pos = 0;
     term->out->len = 0;
     qoutes_init(term);
-    term->total = 0;
     term->row = 0;
     term->col = 0;
     term->x = 0;

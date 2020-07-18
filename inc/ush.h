@@ -21,6 +21,13 @@
 #include <termios.h>
 #include <signal.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
 #define CTRL_KEY(k) ((k) & 0x1f)
 #define ABUF_INIT {NULL, 0}
 #define MAXBUFSIZE (10000U)
@@ -79,8 +86,12 @@ int main(int argc, char **argv, char **envp);
 void mx_get_commands(t_config *term);
 t_config *mx_config_init(void);
 t_hist **mx_hist_init(void);
+void mx_history(void);
+void mx_clear(void);
+void mx_sighandler(int signum);
+void mx_help(void);
 void mx_get_term_params(t_config *term);
-void mx_loop(t_config* term, t_hist **hist);
+void mx_loop(t_config* term, t_hist **hist, char **envp);
 void mx_raw_mode_on(void);
 void mx_get_cursor(int *y, int *x);
 void mx_refresh_line(t_config* term, int offset);

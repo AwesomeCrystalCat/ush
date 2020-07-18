@@ -22,17 +22,18 @@ static void arrow_keys(t_config *term, t_hist **hist, int c) {
     }
 }
 
-static void exit_action(t_config *term, int i) {
+static void sig_action(t_config *term) {
+    if (term->out->line != NULL) {
+        free(term->out->line);
+        term->out->line = NULL;
+        term->out->len = 0;
+    }
     write(1, "\x1b[0J", 4);
-    mx_cooked_mode_on();
-    tcsetattr(0, TCSAFLUSH, &term->origin);
-    if (i)
-        write(1, "^C", 2);
     write (1, "\n", 1);
-    if (i)
-        exit(130);
-    else
-        exit(0);
+    term->mo_x++;
+    mx_get_cursor(&term->y, &term->x);
+    term->mo_x = term->x;
+    mx_refresh_line(term, 5);
 }
 
 void mx_process_key(t_config *term, t_hist **hist) {
@@ -47,9 +48,9 @@ void mx_process_key(t_config *term, t_hist **hist) {
     else if (c == CTRL_KEY('g'))
         write(1, "\a", 1);
     else if (c == CTRL_KEY('c'))
-        exit_action(term, 1);
+        sig_action(term);
     else if (c == CTRL_KEY('d'))
-        exit_action(term, 0);
+        sig_action(term);
     else if ((c >= 1000 && c <= 1008) || c == 127)
         arrow_keys(term, hist, c);
     else if (c >= 32 && c <= 126)

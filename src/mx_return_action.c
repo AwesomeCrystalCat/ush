@@ -24,24 +24,30 @@ static void clean_up(t_config *term) {
     term->mo_x++;
 }
 
+static void quotes_result(t_config *term) {
+    clean_up(term);
+    if (term->quo[0] == 96 || term->quo[1] == 96)
+        write(1, "\r\nbqoute> ", 10);
+    else if (term->quo[0] == 34 && term->quo[1] != 96)
+        write(1, "\r\ndqoute> ", 10);
+    else if (term->quo[0] == 39 && term->quo[1] != 96)
+        write(1, "\r\nqoute> ", 9);
+}
+
 void mx_return_action(t_config *term) {
     if (term->out->len > 0) {
         mx_qoutes_handling(term);
         history_entries(term);
         if (!term->quo[0])
             term->reset = 1;
-        else if (term->quo[0]) {
-            clean_up(term);
-            write(1, "\r\nblockqoute> ", 14);
-        }
+        else
+            quotes_result(term);
     }
     else if (!term->quo[0]) {
         write(1, "\n\r", 2);
         clean_up(term);
         mx_refresh_line(term, 5);
     }
-    else {
-        clean_up(term);
-        write(1, "\r\nblockqoute> ", 14);
-    }
+    else
+        quotes_result(term);
 }

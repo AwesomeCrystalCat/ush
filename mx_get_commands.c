@@ -21,16 +21,23 @@ static int count_processor(DIR *mydir) {
     return count;
 }
 
+static void add_our_command(t_config *term, int i) {
+    char *command[8] = {"cd", "env", "export", "unset",
+                        "alias", "history", "exit", "clear"};
+
+    for (int j = 0; j < 8; j++)
+        term->command[i++] = mx_strdup(command[j]);
+}
+
 void mx_get_commands(t_config *term) {
     struct dirent *dirptr;
     DIR *mydir;
     int i = 0;
 
-    if ((mydir = opendir("/bin")) != NULL) {
+    if ((mydir = opendir("/bin")) != NULL)
         term->count = count_processor(mydir);
-    }
     closedir(mydir);
-    term->command = (char **)malloc(sizeof(char *) * (term->count));
+    term->command = (char **)malloc(sizeof(char *) * (term->count + 8));
     if ((mydir = opendir("/bin")) != NULL) {
         while((dirptr = readdir(mydir)) != NULL) {
             if (dirptr->d_name[0] != '.'
@@ -39,4 +46,5 @@ void mx_get_commands(t_config *term) {
         }
     }
     closedir(mydir);
+    add_our_command(term, i);
 }
